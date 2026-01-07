@@ -199,8 +199,12 @@ fn preprocess_strokes(strokes: &[Stroke], opts: &MatcherOptions) -> Vec<StrokePr
 }
 
 /// Calculate similarity score between input and reference strokes
+#[inline]
 fn score_similarity(input: &[StrokeProcessed], reference: &[StrokeProcessed]) -> f64 {
     let mut score = 0.0;
+    const MAGIC_PER_STROKE_WEIGHT: f64 = 4.0;
+    const NUM_ENCODED_POINTS_F64: f64 = NUM_ENCODED_POINTS as f64;
+    const NUM_POSSIBLE_ENCODED_VALUE_F64: f64 = NUM_POSSIBLE_ENCODED_VALUE as f64;
 
     for i in 0..input.len() {
         let input_stroke = &input[i];
@@ -208,28 +212,29 @@ fn score_similarity(input: &[StrokeProcessed], reference: &[StrokeProcessed]) ->
 
         // Compare sampled point positions
         for s in 0..NUM_ENCODED_POINTS {
-            score -= (input_stroke[2 * s] - ref_stroke[2 * s]).abs();
-            score -= (input_stroke[2 * s + 1] - ref_stroke[2 * s + 1]).abs();
+            let idx = 2 * s;
+            score -= (input_stroke[idx] - ref_stroke[idx]).abs();
+            score -= (input_stroke[idx + 1] - ref_stroke[idx + 1]).abs();
         }
 
         // Compare angles (circular distance)
-        let c = (input_stroke[2 * NUM_ENCODED_POINTS] - ref_stroke[2 * NUM_ENCODED_POINTS]).abs();
-        let angle_similarity = c.min(NUM_POSSIBLE_ENCODED_VALUE as f64 - c);
+        let angle_idx = 2 * NUM_ENCODED_POINTS;
+        let c = (input_stroke[angle_idx] - ref_stroke[angle_idx]).abs();
+        let angle_similarity = c.min(NUM_POSSIBLE_ENCODED_VALUE_F64 - c);
 
         // Weight by average length
-        let lengthy = (input_stroke[2 * NUM_ENCODED_POINTS + 1]
-            + ref_stroke[2 * NUM_ENCODED_POINTS + 1])
-            / NUM_POSSIBLE_ENCODED_VALUE as f64;
+        let length_idx = angle_idx + 1;
+        let lengthy =
+            (input_stroke[length_idx] + ref_stroke[length_idx]) / NUM_POSSIBLE_ENCODED_VALUE_F64;
 
-        const MAGIC_PER_STROKE_WEIGHT: f64 = 4.0;
-        score -= MAGIC_PER_STROKE_WEIGHT * NUM_ENCODED_POINTS as f64 * lengthy * angle_similarity;
+        score -= MAGIC_PER_STROKE_WEIGHT * NUM_ENCODED_POINTS_F64 * lengthy * angle_similarity;
     }
 
     score
 }
 
 /// Matcher configuration options
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct MatcherOptions {
     pub max_ratio: f64,
     pub min_width: f64,
@@ -263,6 +268,7 @@ impl Matcher {
     }
 
     /// Preprocess user input strokes
+    #[inline]
     pub fn preprocess(&self, strokes: &[Stroke]) -> Vec<StrokeProcessed> {
         preprocess_strokes(strokes, &self.params)
     }

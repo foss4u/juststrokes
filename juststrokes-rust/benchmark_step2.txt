@@ -1,0 +1,9 @@
+Baseline Benchmark Results
+==========================
+Date: 2026-01-07 18:07:35
+Characters: 9574
+Runs: 3
+Average: 1050.88 ms
+Min: 934.86 ms
+Max: 1261.50 ms
+Throughput: 9110.48 chars/sec
