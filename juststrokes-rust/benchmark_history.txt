@@ -1,3 +1,6 @@
 Step 1 (Baseline): 1124.35 ms
-Step 2 (Inline + minor opts): 1050.88 ms
-Improvement: 6.5% faster
+Step 2 (Inline + minor opts): 1050.88 ms (6.5% improvement)
+Step 3 (Pre-allocation attempt): 1131.99 ms (regression, reverted)
+
+Final: Step 2 is the best optimization
+Throughput: 8515 -> 9110 chars/sec
