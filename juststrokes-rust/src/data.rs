@@ -3,11 +3,12 @@ use serde_json::Value;
 use std::fs;
 use std::path::Path;
 
-/// Type alias for character database
+/// Database of characters with their preprocessed stroke features
 pub type CharacterDatabase = Vec<(Ideograph, Vec<StrokeProcessed>)>;
 
-/// Load character database from graphics.json
-/// Format: [[char, [[x0,y0,...,angle,length], ...]], ...]
+/// Load preprocessed character database from JSON file
+/// Expected format: [[character, [[x0,y0,x1,y1,x2,y2,x3,y3,angle,length], ...]], ...]
+/// Each character maps to a list of strokes, each stroke has 10 values
 pub fn load_graphics_json<P: AsRef<Path>>(
     path: P,
 ) -> Result<CharacterDatabase, Box<dyn std::error::Error>> {
