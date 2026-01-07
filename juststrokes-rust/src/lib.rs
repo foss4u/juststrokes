@@ -3,6 +3,7 @@ use std::f64::consts::PI;
 
 pub mod csv_data;
 pub mod data;
+pub mod socket_service;
 
 /// 2D point in canvas coordinate space
 pub type Point = [f64; 2];
