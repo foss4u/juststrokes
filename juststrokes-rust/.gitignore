@@ -2,6 +2,9 @@
 /target/
 Cargo.lock
 
+# Generated data files
+graphics.csv
+
 # IDE
 .vscode/
 .idea/

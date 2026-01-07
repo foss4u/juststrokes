@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::f64::consts::PI;
 
+pub mod csv_data;
 pub mod data;
 
 /// 2D point in canvas coordinate space
