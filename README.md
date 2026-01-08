@@ -1,10 +1,12 @@
-# JustStrokes Rust
+# JustStrokes
 
-A Rust implementation of Chinese character (Hanzi) handwriting recognition with Unix socket API for local integration.
+Chinese character (Hanzi) handwriting recognition service written in Rust with Unix socket API for local integration.
+
+> **Note:** This is the `rust` branch containing only the Rust implementation. For the original TypeScript/JavaScript version, see the `main` branch.
 
 ## Overview
 
-Bug-to-bug translation of the original TypeScript algorithm, now with a Unix socket service for use as a local API backend. Matches user-drawn strokes against a database of ~9,500 Chinese characters.
+High-performance handwriting recognition service translated from TypeScript to Rust. Matches user-drawn strokes against a database of ~9,500 Chinese characters with a Unix socket API for local integration.
 
 ## Features
 

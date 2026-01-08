@@ -2,10 +2,10 @@ name: Build and Release
 
 on:
   push:
-    branches: [ main ]
+    branches: [ rust ]
     tags: [ 'v*' ]
   pull_request:
-    branches: [ main ]
+    branches: [ rust ]
 
 env:
   CARGO_TERM_COLOR: always
@@ -50,19 +50,16 @@ jobs:
     - name: Cache target directory
       uses: actions/cache@v4
       with:
-        path: juststrokes-rust/target
+        path: target
         key: ${{ runner.os }}-target-${{ matrix.target }}-${{ hashFiles('**/Cargo.lock') }}
     
     - name: Build
-      working-directory: juststrokes-rust
       run: cargo build --release --target ${{ matrix.target }}
     
     - name: Strip binary
-      working-directory: juststrokes-rust
       run: strip target/${{ matrix.target }}/release/juststrokes-rust
     
     - name: Get binary info
-      working-directory: juststrokes-rust
       run: |
         ls -lh target/${{ matrix.target }}/release/juststrokes-rust
         file target/${{ matrix.target }}/release/juststrokes-rust
@@ -71,7 +68,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: juststrokes-rust-${{ matrix.target }}
-        path: juststrokes-rust/target/${{ matrix.target }}/release/juststrokes-rust
+        path: target/${{ matrix.target }}/release/juststrokes-rust
         if-no-files-found: error
 
   test:
@@ -100,15 +97,13 @@ jobs:
     - name: Cache target directory
       uses: actions/cache@v4
       with:
-        path: juststrokes-rust/target
+        path: target
         key: ${{ runner.os }}-target-test-${{ hashFiles('**/Cargo.lock') }}
     
     - name: Run tests
-      working-directory: juststrokes-rust
       run: cargo test --verbose
     
     - name: Run clippy
-      working-directory: juststrokes-rust
       run: cargo clippy --all-targets --all-features -- -D warnings
 
   release:
