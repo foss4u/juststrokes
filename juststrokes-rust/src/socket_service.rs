@@ -116,7 +116,6 @@ pub fn default_socket_path() -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::csv_data::load_graphics_csv;
     use std::io::{Read, Write};
     use std::os::unix::net::UnixStream;
     use std::thread;
@@ -125,8 +124,8 @@ mod tests {
     #[test]
     fn test_socket_service() {
         // Load database from JSON (more reliable)
-        let data = crate::data::load_graphics_json("graphics.json")
-            .expect("Failed to load database");
+        let data =
+            crate::data::load_graphics_json("graphics.json").expect("Failed to load database");
         let matcher = Matcher::new(data, None);
 
         // Use test socket path

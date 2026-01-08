@@ -4,12 +4,18 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-libc = "0.2"
+# Serialization - only derive feature needed
+serde = { version = "1.0", default-features = false, features = ["derive", "alloc"] }
+# JSON parsing - disable default features, only std needed for file I/O
+serde_json = { version = "1.0", default-features = false, features = ["std"] }
+# Unix socket - only needed for getuid
+libc = { version = "0.2", default-features = false }
+# Command-line parsing - minimal features
+clap = { version = "4.5", default-features = false, features = ["std", "help", "usage", "error-context", "derive"] }
 
 [dev-dependencies]
-chrono = "0.4"
+# Benchmarking - only needed for timestamp
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
 
 [[bench]]
 name = "matching_bench"

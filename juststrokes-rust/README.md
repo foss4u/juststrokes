@@ -29,11 +29,27 @@ Recognition pipeline:
 ### Starting the Service
 
 ```bash
+# Show version
+./juststrokes-rust --version
+./juststrokes-rust -V
+
+# Show help
+./juststrokes-rust --help
+./juststrokes-rust -h
+
 # Using default paths
 ./juststrokes-rust
 
-# Custom data file and socket path
-./juststrokes-rust graphics.csv /run/user/$UID/handwritten/juststrokes.socket
+# Custom data file
+./juststrokes-rust --data-file graphics.csv
+./juststrokes-rust -d graphics.json
+
+# Custom socket path
+./juststrokes-rust --socket-path /tmp/juststrokes.socket
+./juststrokes-rust -s /tmp/juststrokes.socket
+
+# Both custom
+./juststrokes-rust -d graphics.csv -s /tmp/juststrokes.socket
 ```
 
 Default socket path: `/run/user/$UID/handwritten/juststrokes.socket`
@@ -151,9 +167,35 @@ Optimized build performance:
 
 ## Dependencies
 
-- `serde` - Serialization/deserialization
-- `serde_json` - JSON parsing
-- `libc` - Unix socket operations
+All dependencies use minimal feature sets for faster builds:
+
+- `serde` - Serialization (derive, alloc only)
+- `serde_json` - JSON parsing (std only)
+- `libc` - Unix socket operations (no default features)
+- `clap` - Command-line parsing (std, help, usage, derive only)
+
+Build time optimized for Linux targets only.
+
+## CI/CD
+
+Automated builds on every commit:
+- Builds for Linux x86_64 (glibc and musl)
+- Runs full test suite
+- Runs clippy linting
+- Creates GitHub releases on tags
+
+### Creating a Release
+
+```bash
+git tag v0.2.0
+git push origin v0.2.0
+```
+
+GitHub Actions will automatically:
+1. Build binaries for both targets
+2. Run all tests
+3. Create a GitHub release
+4. Upload binary artifacts
 
 ## Translation Notes
 
