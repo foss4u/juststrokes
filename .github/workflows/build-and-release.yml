@@ -107,7 +107,100 @@ jobs:
       run: cargo clippy --all-targets --all-features -- -D warnings
 
   release:
-    name: Create Release
+    name: Publish Release
+    needs: [build, test]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/rust'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Get version info
+      id: version
+      run: |
+        # Get git version
+        VERSION=$(git describe --tags --always --dirty)
+        echo "version=${VERSION}" >> $GITHUB_OUTPUT
+        
+        # Get short SHA for release tag
+        SHORT_SHA=$(git rev-parse --short HEAD)
+        echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
+        
+        # Create release tag name
+        RELEASE_TAG="build-${SHORT_SHA}"
+        echo "release_tag=${RELEASE_TAG}" >> $GITHUB_OUTPUT
+    
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+    
+    - name: Prepare release assets
+      run: |
+        cd artifacts
+        for dir in juststrokes-rust-*; do
+          target=$(echo $dir | sed 's/juststrokes-rust-//')
+          cd $dir
+          chmod +x juststrokes-rust
+          tar czf ../juststrokes-rust-${target}.tar.gz juststrokes-rust
+          cd ..
+        done
+        ls -lh *.tar.gz
+    
+    - name: Delete existing release if exists
+      continue-on-error: true
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release delete ${{ steps.version.outputs.release_tag }} --yes --cleanup-tag || true
+    
+    - name: Create or Update Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ steps.version.outputs.release_tag }}
+        name: "Latest Build (${{ steps.version.outputs.version }})"
+        files: artifacts/*.tar.gz
+        body: |
+          ## JustStrokes - Latest Build
+          
+          **Version:** `${{ steps.version.outputs.version }}`  
+          **Commit:** `${{ github.sha }}`  
+          **Built:** ${{ github.event.head_commit.timestamp }}
+          
+          Chinese character handwriting recognition service - automatically built from the latest commit.
+          
+          ### Downloads
+          - `juststrokes-rust-x86_64-unknown-linux-gnu.tar.gz` - Linux x86_64 (glibc, dynamic, ~506KB)
+          - `juststrokes-rust-x86_64-unknown-linux-musl.tar.gz` - Linux x86_64 (musl, static, ~593KB)
+          
+          ### Usage
+          ```bash
+          # Download and extract
+          tar xzf juststrokes-rust-x86_64-unknown-linux-musl.tar.gz
+          
+          # Run
+          ./juststrokes-rust --version
+          ./juststrokes-rust --help
+          ./juststrokes-rust -d graphics.json
+          ```
+          
+          ### Changes
+          ${{ github.event.head_commit.message }}
+          
+          ---
+          
+          > **Note:** This is an automated build. For stable releases, use tagged versions (v*).
+        draft: false
+        prerelease: true
+        make_latest: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
+  tagged-release:
+    name: Create Tagged Release
     needs: [build, test]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
@@ -138,18 +231,27 @@ jobs:
       with:
         files: artifacts/*.tar.gz
         body: |
-          ## JustStrokes Rust ${{ github.ref_name }}
+          ## JustStrokes ${{ github.ref_name }}
           
           Chinese character handwriting recognition service.
           
           ### Downloads
-          - `juststrokes-rust-x86_64-unknown-linux-gnu.tar.gz` - Linux x86_64 (glibc, dynamic)
-          - `juststrokes-rust-x86_64-unknown-linux-musl.tar.gz` - Linux x86_64 (musl, static)
+          - `juststrokes-rust-x86_64-unknown-linux-gnu.tar.gz` - Linux x86_64 (glibc, dynamic, ~506KB)
+          - `juststrokes-rust-x86_64-unknown-linux-musl.tar.gz` - Linux x86_64 (musl, static, ~593KB)
           
           ### Usage
           ```bash
-          tar xzf juststrokes-rust-*.tar.gz
+          tar xzf juststrokes-rust-x86_64-unknown-linux-musl.tar.gz
           ./juststrokes-rust --help
+          ```
+          
+          ### Installation
+          ```bash
+          # Extract to /usr/local/bin
+          sudo tar xzf juststrokes-rust-x86_64-unknown-linux-musl.tar.gz -C /usr/local/bin
+          
+          # Run from anywhere
+          juststrokes-rust --version
           ```
         draft: false
         prerelease: false
